@@ -28,7 +28,7 @@ The output from this process is a single file where each row represents an UPRN 
 * rivers_sea_flood_very_low - is the UPRN located within a ‘high’ flood risk area as defined by the Environment Agency’s ‘risk of flooding from rivers and seas’ resource (0 = no, 1 = yes).
 * rivers_sea_flood_very_low - is the UPRN located within a ‘high’ flood risk area as defined by the Environment Agency’s ‘risk of flooding from rivers and seas’ resource (0 = no, 1 = yes).
 
-The R code to replicate the indicator can be openly accessed in this repo. It takes just under two hours to run on our local machine (CPU 3.00 GHZ, 32 GB RAM). The spatial join process is computationally intensive. Speed improvements could be gained through using [Topographic Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid) (TOIDs) rather than UPRNs (then linking TOIDs to UPRNs), as well as simplifying the flood risk inputs. 
+The R code to replicate the indicator can be openly accessed in this repo. One should run the file [flood_risk_indicator_uprn.R] to create the indicators (https://github.com/markagreen/groundswell_indicators/blob/main/flood%20risk/flood_risk_indicator_uprn.R). It takes just under two hours to run on our local machine (CPU 3.20 GHZ, 32 GB RAM). The spatial join process is computationally intensive and slow with a large dataset like UPRNs. Speed improvements could be gained through using [Topographic Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid) (TOIDs) rather than UPRNs (then linking TOIDs to UPRNs), as well as simplifying the flood risk inputs. 
 
 ## Examples of usage
 
