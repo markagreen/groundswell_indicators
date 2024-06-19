@@ -17,7 +17,7 @@ While our data here only refers to the Cheshire and Merseyside Integrated Care B
 
 The following steps were undertaken:
 1. Load in each dataset and clean them into analysis ready versions.
-2. Use efficient spatial joins to identify if a UPRN is located within a food risk zone. Repeat this process for each individual indicator and save them.
+2. Use an efficient spatial join operation to identify if a UPRN is located within a food risk zone. Repeat this process for each individual indicator and save them.
 3. Combine each indicator into a single Comma Separated Values (CSV) file to output. 
 
 The output from this process is a single file where each row represents an UPRN (including its unique identifier number) and a series of binary columns representing if the UPRN is located within a flood risk area for that specific measure. The file has the following columns:
