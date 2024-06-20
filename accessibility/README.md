@@ -32,23 +32,39 @@ Destinations refers to the specific features of interest that we are interested 
 
 #### 3a. Green space
 
-[Ordnance Survey's Open Green Space Layer](https://www.ordnancesurvey.co.uk/products/os-open-greenspace) resource was used to .
+[Ordnance Survey's Open Green Space Layer](https://www.ordnancesurvey.co.uk/products/os-open-greenspace) resource was used to capture the locations of green spaces. The resource covers Great Britain, although we subset only green spaces for Cheshire and Merseyside in our analysis here. 
+
+The routing algorithm described below expects point locations. We therefore use the access points of each green space when estimating accessibility. Access points are the specific locations in which individuals can enter a green space (e.g., gate, road entry point)
+
+Using the data
 
 Files are stored in the folder `data/raw/osgsl`.
 
 ## Methods
 
-One can measure either the shortest distance or time from a household to any indicator of interest (e.g., nearest green space). 
+The core methodology involves estimating the single source shortest path algorithm for every UPRN. We have found since developing the Access to Healthy Assets and Hazards resource that computing road network accessibility measures is cimputationally intensive. We have improved this methodology through using the GPU accelerated Python library `cugraph`, part of the [NVIDIA RAPIDS ecosystem](https://rapids.ai/). This has significantly reduced the computational time from days to hours or minutes (depending on the size of the dataset).
 
-To run the code, you will need access to GPU support (the larger, the better). . It takes roughly one hour to run the notebook once the roads have been pre-processed (this only needs to be done once, so it is therefore one hour per indicator). 
+To run the code, you will need access to GPU support (the larger, the better). If you do not have access to a GPU, then I have created a jupyter notebook so that you can run the code in [Google Colab](https://colab.research.google.com/) which can provide you with free access to cloud GPU support (see `colab_nb.ipynb`). It takes roughly one hour to run the notebook using the premium Colab option and after the roads have been pre-processed (this only needs to be done once, so it is therefore one hour per indicator). The notebook includes how to set up Google Colab to run the repo. 
 
-#### 1. Preprocessing
+I have divided the specific details of how the methods work into two stages below.
+
+### 1. Preprocessing
+
+A
+
+#### 1a. Road network
 
 A
 
-#### 2. Estimate routing
+#### 1b. Origins and destinations
 
 A
+
+### 2. Estimate routing
+
+A
+
+One can measure either the shortest distance or time from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see). 
 
 ## Examples of usage
 
