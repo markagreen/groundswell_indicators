@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document details the creation of a lookup table for identifying whether a Unique Property Reference Numbers (UPRN) is located in an area at risk of flooding. The measures developed here cover the three main flooding risks in the UK: fluvial (rivers and streams), coastal and surface water. We selected these risks and how best to measure them following consultation with Dr Charlotte Lydon and Professor Neil Macdonald who are experts in these processes. 
+This readme details the creation of a lookup table for identifying whether a Unique Property Reference Numbers (UPRN) is located in an area at risk of flooding. The measures developed here cover the three main flooding risks in the UK: fluvial (rivers and streams), coastal and surface water. We selected these risks and how best to measure them following consultation with Dr Charlotte Lydon and Professor Neil Macdonald who are experts in these processes. 
 
 ## Data
 
