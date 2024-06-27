@@ -1,7 +1,5 @@
 # Accessibility metrics
 
-The README is still under construction, apologies.
-
 ## Introduction
 
 The methods presented here estimate the road network accessibility between origin locations (households in our case) and sites of interest (e.g., green spaces). A key metric developed using this methodology is the time/distance of a household to its nearest green space, although it can be easily adapted for any particular environmental feature (e.g., replacing green spaces with General Practivec locations or retail outlets) or region/country. All of the data and methods used are open source. 
