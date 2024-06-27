@@ -120,7 +120,29 @@ Each file does roughly the following:
 4. A routing object is instantiated with the processed nodes, edges, greenspace areas (as inputs), and postcodes (as outputs). The routing object is configured with parameters such as weights (time estimates) and buffer distances. The fit method of the routing object calculates distances between nodes in the graph based on the given weights and buffers.
 5. The computed distances are joined with the origin data to associate each distance with a specific origin (e.g., UPRN). The resulting DataFrame, containing origins and nearest distance to a destination, is saved to a CSV file.
 
-#### 2c. Time or distance indicators
+#### 2c. Tips and advice on running scripts
+
+Each individual script can be modified to alter the performance of the code. The following metrics can be changed:
+
+1. `add_to_graph`: The function will find the k nearest nodes for each origin (UPRN) and create a graph based on the edges from these. Having more nodes makes sure that you find the shortest path by considering more routings. If you want to save on computational time, we suggest using a value of 1 or 2 (smaller values save time). 
+2. `add_topk`: The function will find the nearest k nodes in the origin (UPRN) DataFrame for each point in the destination (greenspace) DataFrame. This means that for each node in greenspace, the function will identify the k closest nodes in UPRNs based on their spatial coordinates.
+3. Buffer size (`min_buffer` and `max_buffer` values): The values control the size of the area around each point for which the subgraph is created and to ensure that nodes are sufficiently captured. A higher minimum value will make sure that you capture enough nodes (and destinations / green spaces) to calculate routes, but may increase computational time by potentially capturing more than needed. A larger maximum buffer size will increase the area consider - most important when analysing fewer destinations or those with a greater spatial coverage (e.g., UK whole rather than regional). 
+4. 4. `cutoff`: Maximum time to estimate distance for and if estimates are above this, then stop estimating and save as maximum value (helps to save time where large distances and sparse destinations). Either comment out the code or set to 'None' if want to estimate without a maximum cut off point.
+
+By adjusting the k values in `add_to_graph` and `add_topk`, you control how many nearest neighbors are considered in both functions, affecting the connectivity and detail of the resulting graph and nearest neighbor relationships.
+
+We tested changes in `add_topk` using 100 UPRNs and all green spaces (undertaken on Google Colab). Each 1 unit increase scales the time increase linearly, but smaller values may give incorrect estimates (i.e., where the nearest node was not actually the shortest path to a destination). Having a topk set at 10 is likely best practice, but to reduce computational time a topk value of 3 still gives excellent outcomes with only incremental improvements thereafter. See table below for results: 
+
+| topk value  | Correlation (r) to topk = 10 estimates | Time to run (seconds) |
+| ------------- | ------------- | ------------- |
+| 1  | 0.894  | 25  |
+| 2  | 0.950  | 52  |
+| 3  | 0.988  | 76  |
+| 4  | 0.990  | 103  |
+| 5  | 0.993  | 129  |
+| 10  | 1.000  | 256  |
+
+#### 2d. Time or distance indicators
 
 One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see the files within part 2b). 
 
