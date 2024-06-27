@@ -85,7 +85,13 @@ The R file will be updated as and when we add new destination indicators to be p
 
 ### 2. Estimate routing
 
-The script `ukroutes/routing.py` does the following:
+The next set of files estimate the accessibility indicators.
+
+#### 2a. Key files doing the processing 'under the hood'
+
+The files described below are the key files which calculate the access between origin and destination datasets. One does not need to run these files, since they are mostly called or incoporated into the scripts for generated each indicator. A description of each file is provided below to help explain what they do.
+
+The file `ukroutes/routing.py` does the following:
 * Imports and Warnings: The script starts by importing necessary libraries, including cuDF and cuGraph for GPU-accelerated data processing, GeoPandas for geospatial data manipulation, and other utility modules from the ukroutes package. It also suppresses future warnings from cuGraph to avoid excessive warnings.
 * Greenspace Data: Reads greenspace data from a Parquet file.
 * Preprocessed Nodes and Edges: Loads previously processed road network nodes and edges from Parquet files and converts them to cuDF DataFrames for GPU processing.
@@ -97,7 +103,17 @@ The script `ukroutes/routing.py` does the following:
 * Paths Module: The Paths module from ukroutes.common.utils provides paths to various input and output data files, ensuring consistent file handling across the script.
 * Routing Class: Part of the ukroutes package, this class is responsible for setting up and performing the routing computations. The configuration includes specifying the edges, nodes, input and output datasets, and the criteria for calculating distances (e.g., time-weighted travel).
 
-One can measure either the shortest distance or time from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see). 
+The file `ukroutes/process_routing.py` does the following:
+
+#### 2b. Files that you need to run
+
+The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for UPRNs for that particualr indicator. 
+
+The list of files will be updated with the addition of each new indicator.
+
+#### 2c. Time or distance indicators
+
+One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see). 
 
 ## Examples of usage
 
