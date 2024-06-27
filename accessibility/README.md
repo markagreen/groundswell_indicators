@@ -6,7 +6,7 @@ The README is still under construction, apologies.
 
 The methods presented here estimate the road network accessibility between origin locations (households in our case) and sites of interest (e.g., green spaces). A key metric developed using this methodology is the time/distance of a household to its nearest green space, although it can be easily adapted for any particular environmental feature (e.g., replacing green spaces with General Practivec locations or retail outlets) or region/country. All of the data and methods used are open source. 
 
-The code and methods started life as version 3 of the [Access to Healthy Assets and Hazards](https://github.com/ESRC-CDRC/ahah) resource and later refined in the updated [UK routes](https://github.com/cjber/ukroutes) resource. A lot of credit therefore should be given to [Cillian Berragan](https://github.com/cjber) for leading on the development of these resources which underpin the methodology presented here.
+The code and methods started life as version 3 of the [Access to Healthy Assets and Hazards](https://github.com/ESRC-CDRC/ahah) resource and later refined in the [UK routes](https://github.com/cjber/ukroutes) resource. A lot of credit therefore should be given to [Cillian Berragan](https://github.com/cjber) for leading on the development of these resources which underpin the methodology presented here.
 
 ## Data
 
@@ -66,14 +66,22 @@ The first step is to wrangle the raw input data into the neccessary formats for 
 
 The file `ukroutes/preprocessing.py` processes the road network into a graph network and estimates the time taken inbetween the segments of the road network (edges). 
 
-1. `process_road_edges`: This function reads road link data from a file specified in Paths.OPROAD and calculates time estimates for road segments based on predefined speed estimates derived from road classifications and forms. The speed estimates (in km/h) are converted to time estimates (in minutes) based on the length of each road segment. The processed data is returned as a Polars DataFrame containing the start and end nodes, time estimates, and lengths of the road segments.
-2. `process_road_nodes`: This function processes road node data, extracting the easting and northing coordinates from the geometry of the nodes. It returns a Polars DataFrame with the node IDs and their coordinates.
-3. `ferry_routes`: This function processes ferry routes data from a GeoJSON file, converting it to the British National Grid coordinate system (EPSG:27700). It associates ferry nodes with the nearest road nodes using a KDTree for efficient nearest-neighbor queries. The function calculates time estimates for ferry edges based on their lengths and a fixed speed estimate. The processed ferry nodes and edges are returned as Polars DataFrames.
-4. `process_os`: This function orchestrates the overall processing workflow. It logs the start of the processing, calls the functions to process road edges and nodes, and integrates ferry routes. It then merges the processed ferry nodes and edges with the road nodes and edges. The nodes are re-indexed to ensure unique identifiers, and the final nodes and edges DataFrames are saved to parquet files for efficient storage and retrieval. The function also logs the successful saving of these files.
+1. `process_road_edges`: The function reads road link data and calculates time estimates for road segments based on the speed estimates included in the dataset (estimated based on road classification and form). The speed estimates (in km/h) are converted to time estimates (in minutes) based on the length of each road segment. The processed data is returned as a Polars DataFrame containing the start and end nodes, time estimates, and lengths of the road segments.
+2. `process_road_nodes`: The function processes road node data, extracting the easting and northing coordinates from the geometry of the nodes. It returns a Polars DataFrame with the node IDs and their coordinates.
+3. `ferry_routes`: The function takes ferry routes data and links each ferry node with the nearest road nodes using a KDTree for efficient nearest-neighbor queries. The function calculates time estimates for ferry edges based on their lengths and a fixed speed estimate. The processed ferry nodes and edges are returned as Polars DataFrames.
+4. `process_os`: This function orchestrates the overall processing workflow through processing the input data using the three functions described above. The nodes are re-indexed to ensure unique identifiers, and the final nodes and edges DataFrames are saved to parquet files for efficient storage and retrieval.
+
+The code will process the entire road network for Great Britain. While we could have subset the network for just Cheshire and Merseyside to save time, it is not too long to do Great Britain as a whole so we left it as that for now. The resulting processed road network is stored in the folder `routes/routes/osm`.
+
+The file only needs processing once and it can then be used for any additional indicator generation
 
 #### 1b. Origins and destinations
 
-TBC
+The file `ukroutes/process_input_files.R` processes all origin and destintion datasets into the formats that they require for being used in the routing calculations.
+
+First, it loads in all UPRNs for Great Britain and subsets only those located in Cheshire and Merseyside. Second, the green space dataset is loaded in. Rather than just subsetting only green spaces that are located in Cheshire and Merseyside, we use this spatial extent plus a buffer of 1km around it to minimise any edge effects in the computation of accessibility (i.e., where the nearest green space lies just over the region border, this would be missed by subsetting on just the region). 
+
+The R file will be updated as and when we add new destination indicators to be processed.
 
 ### 2. Estimate routing
 
