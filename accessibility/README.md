@@ -41,12 +41,12 @@ Destinations refers to the specific features of interest that we are interested 
 The routing algorithm described below expects point locations. We therefore use the access points of each green space when estimating accessibility. Access points are the specific locations in which individuals can enter a green space (e.g., gate, road entry point). The resource also includes polyons of the spatial extent of each green space. Using these polyons, the size of each green space is calculated and alongside the type of green space (i.e., function) are joined onto the access points file so that we can differentiate between different types of green spaces.
 
 Using the resource, we recreate the following indicators based on Natural England's 2023 Green Infrastructure Framework definitions (see p33 of their [Green infrastructure standards report](https://designatedsites.naturalengland.org.uk/GreenInfrastructure/downloads/Green%20Infrastructure%20Standards%20for%20England%20Summary%20v1.1.pdf)):
-* Doorstop green space - minimum size 0.5 ha, maximum distance 200 m, maximum journey time 5 minutes (walk).
-* Local green space - minimum size 2 ha, maximum distance 300 m, maximum journey time 5 minutes (walk).
-* Neighbourhood green space - minimum size 10 ha, maximum distance 1 km, maximum journey time 15 minutes (walk).
-* Wider green space - minimum size 20 ha, maximum distance 2 km, maximum journey time 35 minutes (walk).
-* District ogreen space - minimum size 100 ha, maximum distance 5 km, maximum journey time 15-20 minutes (cycle).
-* Sub-regional green space - minimum size 500 ha, maximum distance 10 km, maximum journey time 30-40 minutes (cycle).
+1. Doorstop green space - minimum size 0.5 ha, maximum distance 200 m, maximum journey time 5 minutes (walk).
+2. Local green space - minimum size 2 ha, maximum distance 300 m, maximum journey time 5 minutes (walk).
+3. Neighbourhood green space - minimum size 10 ha, maximum distance 1 km, maximum journey time 15 minutes (walk).
+4. Wider green space - minimum size 20 ha, maximum distance 2 km, maximum journey time 35 minutes (walk).
+5. District ogreen space - minimum size 100 ha, maximum distance 5 km, maximum journey time 15-20 minutes (cycle).
+6. Sub-regional green space - minimum size 500 ha, maximum distance 10 km, maximum journey time 30-40 minutes (cycle).
 
 Files are stored in the folder `data/raw/osgsl`.
 
@@ -92,28 +92,39 @@ The next set of files estimate the accessibility indicators.
 The files described below are the key files which calculate the access between origin and destination datasets. One does not need to run these files, since they are mostly called or incoporated into the scripts for generated each indicator. A description of each file is provided below to help explain what they do.
 
 The file `ukroutes/routing.py` does the following:
-* Imports and Warnings: The script starts by importing necessary libraries, including cuDF and cuGraph for GPU-accelerated data processing, GeoPandas for geospatial data manipulation, and other utility modules from the ukroutes package. It also suppresses future warnings from cuGraph to avoid excessive warnings.
-* Greenspace Data: Reads greenspace data from a Parquet file.
-* Preprocessed Nodes and Edges: Loads previously processed road network nodes and edges from Parquet files and converts them to cuDF DataFrames for GPU processing.
-* The filter_deadends function constructs a graph using the loaded edges, identifies connected components, and filters out nodes and edges that are not part of the largest connected component. This step ensures the graph is contiguous and removes isolated nodes and edges.
-* Integrating Additional Data: The add_to_graph function is used to integrate greenspace data and postcode data into the graph, updating the nodes and edges accordingly. The add_topk function is applied to rank and possibly filter the greenspace and postcode data based on proximity or another metric.
-* Routing Calculation: A Routing object is instantiated with the processed nodes, edges, greenspace areas (as inputs), and postcodes (as outputs). The routing object is configured with parameters such as weights (time estimates) and buffer distances. The fit method of the Routing object calculates distances between nodes in the graph based on the given weights and buffers.
-* Saving Results: The computed distances are joined with the postcode data to associate each distance with a specific postcode.The resulting DataFrame, containing postcodes and distances, is saved to a CSV file.
-* The process_ev function is commented out because its functionality was already executed elsewhere. Some code sections related to further processing and data handling (e.g., dropna, additional filtering) are also commented out, indicating they may be optionally included depending on the use case. 
-* Paths Module: The Paths module from ukroutes.common.utils provides paths to various input and output data files, ensuring consistent file handling across the script.
-* Routing Class: Part of the ukroutes package, this class is responsible for setting up and performing the routing computations. The configuration includes specifying the edges, nodes, input and output datasets, and the criteria for calculating distances (e.g., time-weighted travel).
+
+1. `__init__`: Define key parameters. Creates a `cuGraph` graph object (`cuGraph` allows for GPU-accelerated data processing) from the provided edges, setting it up with the specified time weights. Initializes an empty DataFrame for distances.
+2. `fit`: Calculates the shortest distances for each destination point.
+3. `create_sub_graph`: Generates a subgraph based on a buffer distance around each UPRN. Copies nodes and calculates the distance of each node from the UPRN. Creates a subgraph with nodes within the buffer distance, doubling the buffer size until a valid subgraph is created or the maximum buffer size is reached. Removes partial graphs (i.e., parts of the network that not connected to the road network, as this creates inefficient or erroneous calculations) and ensures the subgraph contains all necessary nodes.
+4. `_remove_partial_graphs`: Identifies and retains the largest connected component in a subgraph.
+5. `get_shortest_dists`: Creates a subgraph for the given UPRN. Calculates shortest paths within the subgraph using Single Source Shortest Path (SSSP) and filters unreachable nodes. Determines distances based on the length of the inputs and outputs DataFrames. Updates the distances DataFrame with the shortest distances for each node. Determines which DataFrame to process based on their lengths. Iterates over the items in the selected DataFrame and calls the get_shortest_dists method for each item.
 
 The file `ukroutes/process_routing.py` does the following:
 
+1. `add_to_graph`: The function adds new nodes and edges to an existing graph. To do this, it first uses `KDTree` to find the k nearest nodes for each point in a data frame with new nodes. Then create a DataFrame `nearest_nodes_df` to store these nearest nodes and their distances. Construct new edges from the new nodes to their nearest nodes, calculate a time-weighted distance, and add these edges to the edges DataFrame.
+2. `add_topk`: The function finds the top k nearest nodes in input for each node in output and updates buffers. Again a `KDTree` is used to find the k nearest nodes for each point in output. If the output is smaller than input, it updates the output with the nearest nodes and their buffers. If the output is not smaller, it constructs a DataFrame to associate each output node with its top k nearest nodes from input. Then update the input DataFrame with lists of nearest nodes and calculate buffers. Merge these results with the input DataFrame and ensures only valid lists are kept.
+
+These files are instrumental in part 2b. 
+
 #### 2b. Files that you need to run
 
-The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for UPRNs for that particualr indicator. 
+The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for UPRNs for that particular indicator. Within the folder, there lies the following files:
+
+1. `gs_all_routing`: Estimates the time (minutes) to the nearest green space of any size.
 
 The list of files will be updated with the addition of each new indicator.
 
+Each file does roughly the following:
+
+1. Reads in the origins (e.g., UPRNs) and destination (e.g., green spaces) datasets. Loads in the preprocessed road network nodes and edges, and converts them to `cuDF` DataFrames for GPU processing.
+2. The `filter_deadends` function constructs a graph using the loaded edges, identifies connected components, and filters out nodes and edges that are not part of the largest connected component. This step ensures the graph is contiguous and removes isolated nodes and edges.
+3. The `add_to_graph` function is used to integrate the origin and destination data into the graph, updating the nodes and edges accordingly. The `add_topk` function is applied to rank and filter the greenspace and postcode data based on proximity to help the efficiency of the computational time.
+4. A routing object is instantiated with the processed nodes, edges, greenspace areas (as inputs), and postcodes (as outputs). The routing object is configured with parameters such as weights (time estimates) and buffer distances. The fit method of the routing object calculates distances between nodes in the graph based on the given weights and buffers.
+5. The computed distances are joined with the origin data to associate each distance with a specific origin (e.g., UPRN). The resulting DataFrame, containing origins and nearest distance to a destination, is saved to a CSV file.
+
 #### 2c. Time or distance indicators
 
-One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see). 
+One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see the files within part 2b). 
 
 ## Examples of usage
 
