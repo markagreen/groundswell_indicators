@@ -53,23 +53,23 @@ lkup <- fread("../data/raw/os_uprns/lids-2024-06_csv_BLPU-UPRN-TopographicArea-T
 lkup <- lkup[, c("IDENTIFIER_1", "IDENTIFIER_2")] # Keep only variables required
 names(lkup)[names(lkup) == "IDENTIFIER_1"] <- "UPRN" # Rename variables
 names(lkup)[names(lkup) == "IDENTIFIER_2"] <- "TOID"
-lkup2 <- fread("./NSUL_APR_2024/Data/NSUL_APR_2024_NW.csv") # UPRN lookup table to spatial identifiers - April 2024 dataset downloaded 2nd July 2024 via https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about 
+lkup2 <- fread("../data/raw/os_uprns/NSUL_APR_2024/Data/NSUL_APR_2024_NW.csv") # UPRN lookup table to spatial identifiers - April 2024 dataset downloaded 2nd July 2024 via https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about 
 lkup2 <- lkup2[, c("UPRN", "lad23cd")] # Keep only variables required
 lkup <- merge(lkup, lkup2, by = "UPRN", all.x = TRUE) # Join together
 lkup <- lkup[!is.na(hold$lad23cd)] # Drop TOIDs not in the North West
 # Subset only Cheshire and Merseyside
 uprn_cm <- lkup[lkup$lad23cd == "E06000049" | lkup$lad23cd == "E06000050" | lkup$lad23cd == "E06000006" | lkup$lad23cd == "E08000011" | lkup$lad23cd == "E08000012" | lkup$lad23cd == "E08000014" | lkup$lad23cd == "E08000013" | lkup$lad23cd == "E06000007" | lkup$lad23cd == "E08000015",] # Local Authority Codes in order are: Cheshire East, Cheshire West and Chester, Halton, Knowsley, Liverpool, Sefton, St Helens, Warrington, Wirral
-write_parquet(unique_data <- unique(data, by = "TOID"), "../data/raw/os_uprns/uprn_toid_cm_lkup.parquet") # Save lookup table
+write_parquet(unique_data <- unique(data, by = "TOID"), "../data/processed/uprn_toid_cm_lkup.parquet") # Save lookup table
 rm(lkup, lkup2) # Tidy
 gc()
 
 # Create a Cheshire and Merseyside TOID dataset
-uprn_cm <- read_parquet("../data/raw/os_uprns/uprn_toid_cm_lkup.parquet") # Load UPRN to TOID lookup
+uprn_cm <- read_parquet("../data/processed/uprn_toid_cm_lkup.parquet") # Load UPRN to TOID lookup
 toid_cm <- unique(uprn_cm, by = "TOID") # Aggregate to unique TOID values (as duplicate values for each UPRN)
 toid_cm <- toid_cm[, 2:3] # Delete the UPRN column
 toid_cm <- merge(toid_cm, toid, by = "TOID", all.x = TRUE) # Join on the spatial locations of TOIDs
 toid_cm <- toid_cm[!is.na(toid_cm$EASTING)] # Drop if missing location (n=20)
-write_parquet(toid_cm, "../data/raw/os_uprns/toids_cm_osgb.parquet") # Save
+write_parquet(toid_cm, "../data/processed/toids_cm_osgb.parquet") # Save
 rm(toid, uprn_cm) # tidy
 gc()
 
@@ -78,7 +78,7 @@ toid_sf <- st_as_sf(toid_cm, coords = c("EASTING", "NORTHING"), crs = 27700) # C
 toid_sf <- st_transform(toid_sf, crs = 4326) # Transform the coordinates to WGS84
 toid_cm$latitude <- st_coordinates(toid_sf)[, 2] # Extract the latitude and longitude
 toid_cm$longitude <- st_coordinates(toid_sf)[, 1]
-write_parquet(toid_cm, "../data/raw/os_uprns/toids_cm.parquet") # Save
+write_parquet(toid_cm, "../data/processed/toids_cm.parquet") # Save
 rm(toid_sf, toid_cm) # Tidy
 gc()
 
