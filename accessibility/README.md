@@ -36,15 +36,11 @@ Destinations refers to the specific features of interest that we are interested 
 
 [Ordnance Survey's Open Green Space Layer](https://www.ordnancesurvey.co.uk/products/os-open-greenspace) resource was used to capture the locations of green spaces. The resource covers Great Britain, although we subset only green spaces for Cheshire and Merseyside in our analysis here. 
 
-The routing algorithm described below expects point locations. We therefore use the access points of each green space when estimating accessibility. Access points are the specific locations in which individuals can enter a green space (e.g., gate, road entry point). The resource also includes polyons of the spatial extent of each green space. Using these polyons, the size of each green space is calculated and alongside the type of green space (i.e., function) are joined onto the access points file so that we can differentiate between different types of green spaces.
+The routing algorithm described below expects point locations. We therefore use the access points of each green space when estimating accessibility. Access points are the specific locations in which individuals can enter a green space (e.g., gate, road entry point). The resource also includes polyons of the spatial extent of each green space. Using these polyons, the size of each green space is calculated. We follow [Geary et al.'s (2023)]([https://www.journalslibrary.nihr.ac.uk/phr/LQPT9410/](https://www.journalslibrary.nihr.ac.uk/phr/LQPT9410/#/app2)) definitions of green space types for inclusion of the functional types of green space. 
 
-Using the resource, we recreate the following indicators based on Natural England's 2023 Green Infrastructure Framework definitions (see p33 of their [Green infrastructure standards report](https://designatedsites.naturalengland.org.uk/GreenInfrastructure/downloads/Green%20Infrastructure%20Standards%20for%20England%20Summary%20v1.1.pdf)):
-1. Doorstop green space - minimum size 0.5 ha, maximum distance 200 m, maximum journey time 5 minutes (walk).
-2. Local green space - minimum size 2 ha, maximum distance 300 m, maximum journey time 5 minutes (walk).
-3. Neighbourhood green space - minimum size 10 ha, maximum distance 1 km, maximum journey time 15 minutes (walk).
-4. Wider green space - minimum size 20 ha, maximum distance 2 km, maximum journey time 35 minutes (walk).
-5. District ogreen space - minimum size 100 ha, maximum distance 5 km, maximum journey time 15-20 minutes (cycle).
-6. Sub-regional green space - minimum size 500 ha, maximum distance 10 km, maximum journey time 30-40 minutes (cycle).
+While the ordnance survey include access points for each green space vector, they can be of mixed quality (e.g., missing access points or lack of informal routes that people may also use). To counter this, we follow the methodology outlined in [Geary et al. (2023)](https://www.journalslibrary.nihr.ac.uk/phr/LQPT9410/#/app3). Here we process the access points in `ukroutes/process_input_files.R` to select the north, south, east and west extents of the spatial boundaries of each green space. These are then added to the ordnance survey's access points to supplement them.
+
+The open green space layer does not include open access land which are found in rural areas (i.e., field and farmland with right of ways through them). We accessed their spatial extents via [Natural England's eopn data resource](https://naturalengland-defra.opendata.arcgis.com/datasets/6ce15f2cd06c4536983d315694dad16b/explore?location=53.419183%2C-2.773053%2C10.73). This follows the methodology set out by Natural England in their Green Infrastructure project. Since the files only include the spatial extent and do not include the specific access points, we process each row to estimate the north, south, east and west points to mimic this (using the same approach as described above).
 
 Files are stored in the folder `data/raw/osgsl`.
 
@@ -69,17 +65,28 @@ The file `ukroutes/preprocessing.py` processes the road network into a graph net
 3. `ferry_routes`: The function takes ferry routes data and links each ferry node with the nearest road nodes using a KDTree for efficient nearest-neighbor queries. The function calculates time estimates for ferry edges based on their lengths and a fixed speed estimate. The processed ferry nodes and edges are returned as Polars DataFrames.
 4. `process_os`: This function orchestrates the overall processing workflow through processing the input data using the three functions described above. The nodes are re-indexed to ensure unique identifiers, and the final nodes and edges DataFrames are saved to parquet files for efficient storage and retrieval.
 
-The code will process the entire road network for Great Britain. While we could have subset the network for just Cheshire and Merseyside to save time, it is not too long to do Great Britain as a whole so we left it as that for now. The resulting processed road network is stored in the folder `routes/routes/osm`.
+The code will process the entire road network for Great Britain. While we could have subset the network for just Cheshire and Merseyside to save time, it is not too long to do Great Britain as a whole so we left it as that for now. The resulting processed road network is stored in the folder `data/processed/oproads`.
 
 The file only needs processing once and it can then be used for any additional indicator generation
 
-#### 1b. Origins and destinations
+#### 1b. Origins
 
-The file `ukroutes/process_input_files.R` processes all origin and destintion datasets into the formats that they require for being used in the routing calculations.
+The file `ukroutes/process_input_toids.R` processes all origin datasets into the format that they are required for being used in the routing calculations. It loads in all TOIDs for Great Britain and subsets only those located in Cheshire and Merseyside. The resulting processed TOID files are stored in the folder `data/processed`.
 
-First, it loads in all TOID for Great Britain and subsets only those located in Cheshire and Merseyside. Second, the green space dataset is loaded in. Rather than just subsetting only green spaces that are located in Cheshire and Merseyside, we use this spatial extent plus a buffer of 1km around it to minimise any edge effects in the computation of accessibility (i.e., where the nearest green space lies just over the region border, this would be missed by subsetting on just the region). 
+#### 1c. Destinations
 
-The R file will be updated as and when we add new destination indicators to be processed.
+The file `ukroutes/process_input_greensp.R` processes all the green space datasets and combines them into a single file. It loads in the ordnance survey's open green space layer (both access points and their spatial boundaries) and the open access land spatial boundaries. Locations in Cheshire and Merseyside are then subset for each of these (we take a 2km buffer around the border to minimise any edge effect issues where the nearest green space is located just across the administrative border). The access points require minimal wrangling to get into the neccessary format, although they are linked to the size of their corresponding green space. The two spatial boundaries are then processed to estimate the north, south, east and west points of their spatial extents to approximate further access points, as per the [Geary et al. (2023) methodology]([)](https://www.journalslibrary.nihr.ac.uk/phr/LQPT9410/#/app3). To do this, we calculate a bounding box around each green space and then extract the most northerly, southerly, easterly and westerly points. These are then converted into the required formats for capturing their point location. 
+
+The file recreates the following indicators based on Natural England's 2023 Green Infrastructure Framework definitions (see p33 of their [Green infrastructure standards report](https://designatedsites.naturalengland.org.uk/GreenInfrastructure/downloads/Green%20Infrastructure%20Standards%20for%20England%20Summary%20v1.1.pdf)):
+1. Doorstop green space - minimum size 0.5 ha, maximum distance 200 m, maximum journey time 5 minutes (walk).
+2. Local green space - minimum size 2 ha, maximum distance 300 m, maximum journey time 5 minutes (walk).
+3. Neighbourhood green space - minimum size 10 ha, maximum distance 1 km, maximum journey time 15 minutes (walk).
+4. Wider green space - minimum size 20 ha, maximum distance 2 km, maximum journey time 35 minutes (walk).
+5. District ogreen space - minimum size 100 ha, maximum distance 5 km, maximum journey time 15-20 minutes (cycle).
+6. Sub-regional green space - minimum size 500 ha, maximum distance 10 km, maximum journey time 30-40 minutes (cycle).
+7. All green space - consider all green space of any size
+
+The processed green space indicators for each of these definitions are stored in `data/processed/osgsl`.
 
 ### 2. Estimate routing
 
