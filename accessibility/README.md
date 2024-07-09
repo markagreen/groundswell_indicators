@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The methods presented here estimate the road network accessibility between origin locations (households in our case) and sites of interest (e.g., green spaces). A key metric developed using this methodology is the time/distance of a household to its nearest green space, although it can be easily adapted for any particular environmental feature (e.g., replacing green spaces with General Practivec locations or retail outlets) or region/country. All of the data and methods used are open source. 
+The methods presented here estimate the road network accessibility between origin locations (households in our case) and sites of interest (e.g., green spaces). A key metric developed using this methodology is the time/distance of a household to its nearest green space, although it can be easily adapted for any particular environmental feature (e.g., replacing green spaces with General Practice locations or retail outlets) or region/country. All of the data and methods used are open source. 
 
 The code and methods started life as version 3 of the [Access to Healthy Assets and Hazards](https://github.com/ESRC-CDRC/ahah) resource and later refined in the [UK routes](https://github.com/cjber/ukroutes) resource. A lot of credit therefore should be given to [Cillian Berragan](https://github.com/cjber) for leading on the development of these resources which underpin the methodology presented here.
 
