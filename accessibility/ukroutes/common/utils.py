@@ -16,4 +16,4 @@ class Paths:
     FERRY = RAW / "oproad" / "strtgi_essh_gb" / "ferry_line.shp"
 
     PROCESSED = DATA / "processed"
-    OS_GRAPH = PROCESSED / "osm"
+    OS_GRAPH = PROCESSED / "oproads"
