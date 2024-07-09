@@ -24,7 +24,7 @@ The origin locations are our inputs for which we want to estimate the nearest di
 
 The population of interest for our metric is Cheshire and Merseyside. An additional [ONS lookup table](https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about) linked to each UPRN was used to subset only UPRNs that fall within the Local Authorities of Cheshire and Merseyside (Chester and Cheshire East, Cheshire West, Halton, Knowsley, Liverpool, Sefton, St. Helens, Warrington and Wirral). If you wanted to recreate our indicators for a different region, one would have change this step in the code. 
 
-The methods described below are computationally intensive and the density of UPRNs bring their own challenges (especially compared to postcodes). To improve the time spent processing UPRNs, we initially compute access metrics for [Topographic Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid) (TOIDs) rather than UPRNs. UPRNs are nested within TOIDs, since UPRNs will give each unique property and TOIDs give the unique building. For example, a tower block or student halls accomodation will have many UPRNs for the same TOID/building (e.g., Crown Place student halls at the University of Liverpool (UK) has ~1200 UPRNs for a single TOID). Through using TOIDs, we reduce the number of computations on the assumption that they will be similar for all UPRNs (note: there will be some small differences where TOIDs have multiple entrances, but the differences should be small). We estimate for TOIDs first, then link TOID values to UPRN using an [Ordnance Survey lookup table](https://www.ordnancesurvey.co.uk/products/os-open-linked-identifiers). If you are using the code for smaller regions of UPRNS, then you may not need to do this.
+The methods described below are computationally intensive and the density of UPRNs bring their own challenges (especially compared to postcodes). To improve the time spent processing UPRNs, we initially compute the metrics for [Topographic Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid) (TOIDs) rather than UPRNs. UPRNs are nested within TOIDs, since UPRNs will give each unique property and TOIDs give the unique building. For example, a tower block or student halls accomodation will have many UPRNs for the same TOID/building (e.g., Crown Place student halls at the University of Liverpool (UK) has ~1200 UPRNs for a single TOID). Through using TOIDs, we reduce the number of computations on the assumption that they will be similar for all UPRNs (note: there will be some small differences where TOIDs have multiple entrances, but the differences should be negligible here). The result is that using TOIDs gives us a dataset which is 23% smaller than if we use UPRNs only. In the workflow described below, we first estimate each indicator for TOIDs within Cheshire and Merseyside (using the datasets described above), then link the TOID values back to UPRNs using an [Ordnance Survey lookup table](https://www.ordnancesurvey.co.uk/products/os-open-linked-identifiers). If you are using the code for smaller regions of UPRNS, then you may not need to do this.
 
 Files are stored in the folder `data/raw/onspd`.
 
@@ -50,7 +50,7 @@ Files are stored in the folder `data/raw/osgsl`.
 
 ## Methods
 
-The core methodology involves estimating the single source shortest path algorithm for every UPRN. We have found since developing the Access to Healthy Assets and Hazards resource that computing road network accessibility measures is cimputationally intensive. We have improved this methodology through using the GPU accelerated Python library `cugraph`, part of the [NVIDIA RAPIDS ecosystem](https://rapids.ai/). `cugraph` allows for the highly parrallised processing of graph networks. This has significantly reduced the computational time from days to hours or minutes (depending on the size of the dataset).
+The core methodology involves estimating the single source shortest path algorithm for every TOID. We have found since developing the Access to Healthy Assets and Hazards resource that computing road network accessibility measures is cimputationally intensive. We have improved this methodology through using the GPU accelerated Python library `cugraph`, part of the [NVIDIA RAPIDS ecosystem](https://rapids.ai/). `cugraph` allows for the highly parrallised processing of graph networks. This has significantly reduced the computational time from days to hours or minutes (depending on the size of the dataset).
 
 To run the code, you will need access to GPU support (the larger, the better). If you do not have access to a GPU, then I have created a jupyter notebook so that you can run the code in [Google Colab](https://colab.research.google.com/) which can provide you with free access to cloud GPU support (see `access_indicators_colab.ipynb`). It takes roughly one hour to run the notebook using the premium Colab option and after the roads have been pre-processed (this only needs to be done once, so it is therefore one hour per indicator). The notebook includes how to set up Google Colab to run the repo. 
 
@@ -77,7 +77,7 @@ The file only needs processing once and it can then be used for any additional i
 
 The file `ukroutes/process_input_files.R` processes all origin and destintion datasets into the formats that they require for being used in the routing calculations.
 
-First, it loads in all UPRNs for Great Britain and subsets only those located in Cheshire and Merseyside. Second, the green space dataset is loaded in. Rather than just subsetting only green spaces that are located in Cheshire and Merseyside, we use this spatial extent plus a buffer of 1km around it to minimise any edge effects in the computation of accessibility (i.e., where the nearest green space lies just over the region border, this would be missed by subsetting on just the region). 
+First, it loads in all TOID for Great Britain and subsets only those located in Cheshire and Merseyside. Second, the green space dataset is loaded in. Rather than just subsetting only green spaces that are located in Cheshire and Merseyside, we use this spatial extent plus a buffer of 1km around it to minimise any edge effects in the computation of accessibility (i.e., where the nearest green space lies just over the region border, this would be missed by subsetting on just the region). 
 
 The R file will be updated as and when we add new destination indicators to be processed.
 
@@ -93,9 +93,9 @@ The file `ukroutes/routing.py` does the following:
 
 1. `__init__`: Define key parameters. Creates a `cuGraph` graph object (`cuGraph` allows for GPU-accelerated data processing) from the provided edges, setting it up with the specified time weights. Initializes an empty DataFrame for distances.
 2. `fit`: Calculates the shortest distances for each destination point.
-3. `create_sub_graph`: Generates a subgraph based on a buffer distance around each UPRN. Copies nodes and calculates the distance of each node from the UPRN. Creates a subgraph with nodes within the buffer distance, doubling the buffer size until a valid subgraph is created or the maximum buffer size is reached. Removes partial graphs (i.e., parts of the network that not connected to the road network, as this creates inefficient or erroneous calculations) and ensures the subgraph contains all necessary nodes.
+3. `create_sub_graph`: Generates a subgraph based on a buffer distance around each TOID. Copies nodes and calculates the distance of each node from the TOID. Creates a subgraph with nodes within the buffer distance, doubling the buffer size until a valid subgraph is created or the maximum buffer size is reached. Removes partial graphs (i.e., parts of the network that not connected to the road network, as this creates inefficient or erroneous calculations) and ensures the subgraph contains all necessary nodes.
 4. `_remove_partial_graphs`: Identifies and retains the largest connected component in a subgraph.
-5. `get_shortest_dists`: Creates a subgraph for the given UPRN. Calculates shortest paths within the subgraph using Single Source Shortest Path (SSSP) and filters unreachable nodes. Determines distances based on the length of the inputs and outputs DataFrames. Updates the distances DataFrame with the shortest distances for each node. Determines which DataFrame to process based on their lengths. Iterates over the items in the selected DataFrame and calls the get_shortest_dists method for each item.
+5. `get_shortest_dists`: Creates a subgraph for the given TOID. Calculates shortest paths within the subgraph using Single Source Shortest Path (SSSP) and filters unreachable nodes. Determines distances based on the length of the inputs and outputs DataFrames. Updates the distances DataFrame with the shortest distances for each node. Determines which DataFrame to process based on their lengths. Iterates over the items in the selected DataFrame and calls the get_shortest_dists method for each item.
 
 The file `ukroutes/process_routing.py` does the following:
 
@@ -106,32 +106,34 @@ These files are instrumental in part 2b.
 
 #### 2b. Files that you need to run
 
-The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for UPRNs for that particular indicator. Within the folder, there lies the following files:
+The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for TOIDs for that particular indicator. Within the folder, there lies the following files:
 
-1. `gs_all_routing`: Estimates the time (minutes) to the nearest green space of any size.
+1. `gs_all_routing`: Estimates the time (minutes) to the nearest green space of any size for all TOIDs.
 
 The list of files will be updated with the addition of each new indicator.
 
 Each file does roughly the following:
 
-1. Reads in the origins (e.g., UPRNs) and destination (e.g., green spaces) datasets. Loads in the preprocessed road network nodes and edges, and converts them to `cuDF` DataFrames for GPU processing.
+1. Reads in the origins (e.g., TOIDs) and destination (e.g., green spaces) datasets. Loads in the preprocessed road network nodes and edges, and converts them to `cuDF` DataFrames for GPU processing.
 2. The `filter_deadends` function constructs a graph using the loaded edges, identifies connected components, and filters out nodes and edges that are not part of the largest connected component. This step ensures the graph is contiguous and removes isolated nodes and edges.
 3. The `add_to_graph` function is used to integrate the origin and destination data into the graph, updating the nodes and edges accordingly. The `add_topk` function is applied to rank and filter the greenspace and postcode data based on proximity to help the efficiency of the computational time.
 4. A routing object is instantiated with the processed nodes, edges, greenspace areas (as inputs), and postcodes (as outputs). The routing object is configured with parameters such as weights (time estimates) and buffer distances. The fit method of the routing object calculates distances between nodes in the graph based on the given weights and buffers.
-5. The computed distances are joined with the origin data to associate each distance with a specific origin (e.g., UPRN). The resulting DataFrame, containing origins and nearest distance to a destination, is saved to a CSV file.
+5. The computed distances are joined with the origin data to associate each distance with a specific origin (e.g., TOID). The resulting DataFrame, containing origins and nearest distance to a destination, is saved to a CSV file.
+
+Once the file has been processed, please then run the file `ukroutes/check_outputs.R` which will match the TOID values back to UPRNs and perform some brief quality assurance checks on the dataset (e.g., check for missing data, map the estimates for a user to assess if they look correct). 
 
 #### 2c. Tips and advice on running scripts
 
 Each individual script can be modified to alter the performance of the code. The following metrics can be changed:
 
-1. `add_to_graph`: The function will find the k nearest nodes for each origin (UPRN) and create a graph based on the edges from these. Having more nodes makes sure that you find the shortest path by considering more routings. If you want to save on computational time, we suggest using a value of 1 or 2 (smaller values save time). 
-2. `add_topk`: The function will find the nearest k nodes in the origin (UPRN) DataFrame for each point in the destination (greenspace) DataFrame. This means that for each node in greenspace, the function will identify the k closest nodes in UPRNs based on their spatial coordinates.
+1. `add_to_graph`: The function will find the k nearest nodes for each origin (TOID) and create a graph based on the edges from these. Having more nodes makes sure that you find the shortest path by considering more routings. If you want to save on computational time, we suggest using a value of 1 or 2 (smaller values save time). 
+2. `add_topk`: The function will find the nearest k nodes in the origin (TOID) DataFrame for each point in the destination (greenspace) DataFrame. This means that for each node in greenspace, the function will identify the k closest nodes in TOIDs based on their spatial coordinates.
 3. Buffer size (`min_buffer` and `max_buffer` values): The values control the size of the area around each point for which the subgraph is created and to ensure that nodes are sufficiently captured. A higher minimum value will make sure that you capture enough nodes (and destinations / green spaces) to calculate routes, but may increase computational time by potentially capturing more than needed. A larger maximum buffer size will increase the area consider - most important when analysing fewer destinations or those with a greater spatial coverage (e.g., UK whole rather than regional). 
 4. 4. `cutoff`: Maximum time to estimate distance for and if estimates are above this, then stop estimating and save as maximum value (helps to save time where large distances and sparse destinations). Either comment out the code or set to 'None' if want to estimate without a maximum cut off point.
 
 By adjusting the k values in `add_to_graph` and `add_topk`, you control how many nearest neighbors are considered in both functions, affecting the connectivity and detail of the resulting graph and nearest neighbor relationships.
 
-We tested changes in `add_topk` using 100 UPRNs and all green spaces (undertaken on Google Colab). Each 1 unit increase scales the time increase linearly, but smaller values may give incorrect estimates (i.e., where the nearest node was not actually the shortest path to a destination). Having a topk set at 10 is likely best practice, but to reduce computational time a topk value of 3 still gives excellent outcomes with only incremental improvements thereafter. See table below for results: 
+We tested changes in `add_topk` using 100 TOIDs and all green spaces (undertaken on Google Colab). Each 1 unit increase scales the time increase linearly, but smaller values may give incorrect estimates (i.e., where the nearest node was not actually the shortest path to a destination). Having a topk set at 10 is likely best practice, but to reduce computational time a topk value of 3 still gives excellent outcomes with only incremental improvements thereafter. See table below for results: 
 
 | topk value  | Correlation (r) to topk = 10 estimates | Time to run (seconds) |
 | ------------- | ------------- | ------------- |
@@ -144,7 +146,7 @@ We tested changes in `add_topk` using 100 UPRNs and all green spaces (undertaken
 
 #### 2d. Time or distance indicators
 
-One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Currently the code is set up to estimate the shortest time. Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record distance, please change the parts of the code that say "time_weighted" to "distance" (see the files within part 2b). 
+One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record time or distance, please change the weight in the routing() function to either "time_weighted" or "distance" (see the files within part 2b). 
 
 ## Examples of usage
 
