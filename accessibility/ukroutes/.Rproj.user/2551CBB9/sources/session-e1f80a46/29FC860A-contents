@@ -70,6 +70,7 @@ toid_cm <- toid_cm[!is.na(toid_cm$EASTING)] # Drop if missing location (n=20)
 names(toid_cm)[names(toid_cm) == "EASTING"] <- "easting" # Rename variables 
 names(toid_cm)[names(toid_cm) ==  "NORTHING"] <- "northing" 
 write_parquet(toid_cm, "../data/processed/toids_cm_osgb.parquet") # Save
+# toid_cm <- read_parquet("../data/processed/toids_cm_osgb.parquet") # Save
 rm(toid, uprn_cm) # tidy
 gc()
 
