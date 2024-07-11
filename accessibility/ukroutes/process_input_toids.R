@@ -67,12 +67,14 @@ toid_cm <- unique(uprn_cm, by = "TOID") # Aggregate to unique TOID values (as du
 toid_cm <- toid_cm[, 2:3] # Delete the UPRN column
 toid_cm <- merge(toid_cm, toid, by = "TOID", all.x = TRUE) # Join on the spatial locations of TOIDs
 toid_cm <- toid_cm[!is.na(toid_cm$EASTING)] # Drop if missing location (n=20)
+names(toid_cm)[names(toid_cm) == "EASTING"] <- "easting" # Rename variables 
+names(toid_cm)[names(toid_cm) ==  "NORTHING"] <- "northing" 
 write_parquet(toid_cm, "../data/processed/toids_cm_osgb.parquet") # Save
 rm(toid, uprn_cm) # tidy
 gc()
 
 # Convert file into latitude and longitude (necessary for Google Earth Engine)
-toid_sf <- st_as_sf(toid_cm, coords = c("EASTING", "NORTHING"), crs = 27700) # Convert to an sf object
+toid_sf <- st_as_sf(toid_cm, coords = c("easting", "northing"), crs = 27700) # Convert to an sf object
 toid_sf <- st_transform(toid_sf, crs = 4326) # Transform the coordinates to WGS84
 toid_cm$latitude <- st_coordinates(toid_sf)[, 2] # Extract the latitude and longitude
 toid_cm$longitude <- st_coordinates(toid_sf)[, 1]
