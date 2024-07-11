@@ -27,7 +27,6 @@ rm(osgsl_extdf)
 
 # Subset C&M points
 cm_lsoas <- read_sf("../spatial_files/cm_lsoas.shp") # Load in C&M shapefile
-# Dissolve all boundaries
 dissolved_areas <- st_union(cm_lsoas) # Dissolve all boundaries so a single area extent
 cm_buffer <- st_buffer(dissolved_areas, dist = 2000) # Add buffer around border - 2km
 osgsl_cm <- st_intersection(osgsl, cm_buffer) # Subset only points within the spatial extent of above buffer - osgsl access points
@@ -167,22 +166,22 @@ temp$size <- NULL # Drop variables not required
 write_parquet(temp, "../data/processed/osgsl/osgsl_all.parquet") # Save
 
 # Doorstep green space
-temp <- accesspoints[accesspoints$size >= 0.5,] # Subset those which meet the size threshold (0.5ha) - n = 18759 (68%) 12781 (34%)
+temp <- accesspoints[accesspoints$size >= 0.5,] # Subset those which meet the size threshold (0.5ha) - n = 18759 (50%) 
 temp$size <- NULL # Drop variables not required
 write_parquet(temp, "../data/processed/osgsl/osgsl_doorstop.parquet") # Save
 
 # Local green space
-temp <- accesspoints[accesspoints$size >= 2,] # Subset those which meet the size threshold (2ha) - n = 10653 (39%) (28%)
+temp <- accesspoints[accesspoints$size >= 2,] # Subset those which meet the size threshold (2ha) - n = 10653 (28%)
 temp$size <- NULL # Drop variables not required
 write_parquet(temp, "../data/processed/osgsl/osgsl_local.parquet") # Save
 
 # Neighbourhood green space
-temp <- accesspoints[accesspoints$size >= 10,] # Subset those which meet the size threshold (10ha) - n = 3850 (14%)
+temp <- accesspoints[accesspoints$size >= 10,] # Subset those which meet the size threshold (10ha) - n = 3850 (10%)
 temp$size <- NULL # Drop variables not required
 write_parquet(temp, "../data/processed/osgsl/osgsl_neighbourhood.parquet") # Save
 
 # Wider green space
-temp <- accesspoints[accesspoints$size >= 20,] # Subset those which meet the size threshold (20ha) - n = 2486 (9%)
+temp <- accesspoints[accesspoints$size >= 20,] # Subset those which meet the size threshold (20ha) - n = 2486 (7%)
 temp$size <- NULL # Drop variables not required
 write_parquet(temp, "../data/processed/osgsl/osgsl_wider.parquet") # Save
 
@@ -194,7 +193,7 @@ write_parquet(temp, "../data/processed/osgsl/osgsl_district.parquet") # Save
 # Sub-regional green space
 temp <- accesspoints[accesspoints$size >= 500,] # Subset those which meet the size threshold (500ha) - n = 32 (0.01%)
 temp$size <- NULL # Drop variables not required
-write_parquet(osgsl_new, "../data/processed/osgsl/osgsl_subregional.parquet") # Save
+write_parquet(temp, "../data/processed/osgsl/osgsl_subregional.parquet") # Save
 
 # Tidy
 rm(temp, accesspoints)
