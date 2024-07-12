@@ -115,7 +115,7 @@ These files are instrumental in part 2b.
 
 The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for TOIDs for that particular indicator. Within the folder, there lies the following files:
 
-1. `gs_all_routing`: Estimates the time (minutes) to the nearest green space of any size for all TOIDs.
+1. `gs_all_routing`: Estimates the time (minutes) or distance (meters) to the nearest green space of any size for all TOIDs.
 
 The list of files will be updated with the addition of each new indicator.
 
@@ -153,7 +153,7 @@ We tested changes in `add_topk` using 100 TOIDs and all green spaces (undertaken
 
 #### 2d. Time or distance indicators
 
-One can measure either the shortest distance (km) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Both time and distance are highly correlated together, as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there). If you want to change the output to record time or distance, please change the weight in the routing() function to either "time_weighted" or "distance" (see the files within part 2b). 
+One can measure either the shortest distance (meters) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Both time and distance are highly correlated together (r = 0.95 in a sample of 100 TOIDs), as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there - although I note that travelling at the speed limit for 1 minute on a 70mph motorway versus a 20mph road will give different distances, demonstrating how the road network shapes access). If you want to change the output to record time or distance, please change the weight in the Routing() function to either "time_weighted" for time or "length" for distance (see the files within part 2b). 
 
 ## Examples of usage
 
