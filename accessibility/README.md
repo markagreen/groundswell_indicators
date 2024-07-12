@@ -4,7 +4,7 @@
 
 The methods presented here estimate the road network accessibility between origin locations (households in our case) and sites of interest (e.g., green spaces). A key metric developed using this methodology is the time/distance of a household to its nearest green space, although it can be easily adapted for any particular environmental feature (e.g., replacing green spaces with General Practice locations or retail outlets) or region/country. All of the data and methods used are open source. 
 
-The code and methods started life as version 3 of the [Access to Healthy Assets and Hazards](https://github.com/ESRC-CDRC/ahah) resource and later refined in the [UK routes](https://github.com/cjber/ukroutes) resource. A lot of credit therefore should be given to [Cillian Berragan](https://github.com/cjber) for leading on the development of these resources which underpin the methodology presented here.
+The code and methods started life as version 3 of the [Access to Healthy Assets and Hazards](https://github.com/ESRC-CDRC/ahah) resource and later refined in the [UK routes](https://github.com/cjber/ukroutes) resource. A lot of credit therefore should be given to [Cillian Berragan](https://github.com/cjber) for leading on the development of these resources which underpin the methodology presented here. 
 
 ## Data
 
@@ -46,7 +46,7 @@ Files are stored in the folder `data/raw/osgsl`.
 
 ## Methods
 
-The core methodology involves estimating the single source shortest path algorithm for every TOID. We have found since developing the Access to Healthy Assets and Hazards resource that computing road network accessibility measures is cimputationally intensive. We have improved this methodology through using the GPU accelerated Python library `cugraph`, part of the [NVIDIA RAPIDS ecosystem](https://rapids.ai/). `cugraph` allows for the highly parrallised processing of graph networks. This has significantly reduced the computational time from days to hours or minutes (depending on the size of the dataset).
+The core methodology involves estimating the single source shortest path algorithm for every TOID. We have found since developing the Access to Healthy Assets and Hazards resource that computing road network accessibility measures is cimputationally intensive. We have improved this methodology through using the GPU accelerated Python library `cugraph`, part of the [NVIDIA RAPIDS ecosystem](https://rapids.ai/). `cugraph` allows for the highly parrallised processing of graph networks. This has significantly reduced the computational time from days to hours or minutes (depending on the size of the dataset). Cillian Berragan has written a brief [methodology description here](https://github.com/cjber/ukroutes?tab=readme-ov-file#routing-methodology( on their UK routes tool which supplements the text below. 
 
 To run the code, you will need access to GPU support (the larger, the better). If you do not have access to a GPU, then I have created a jupyter notebook so that you can run the code in [Google Colab](https://colab.research.google.com/) which can provide you with free access to cloud GPU support (see `access_indicators_colab.ipynb`). It takes roughly one hour to run the notebook using the premium Colab option and after the roads have been pre-processed (this only needs to be done once, so it is therefore one hour per indicator). The notebook includes how to set up Google Colab to run the repo. 
 
