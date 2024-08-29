@@ -19,8 +19,8 @@ Macdonald who are experts in these processes.
 The following open data sources were used as inputs in the creation of
 these methods:
 
-- Unique Property Reference Number (UPRN) was accessed using [Office for
-  National Statistic’s open UPRN
+- Unique Property Reference Numbers (UPRN) were accessed using [Office
+  for National Statistic’s open UPRN
   directory](https://geoportal.statistics.gov.uk/datasets/acd0dbf73c2849f2a45e15c4aa248805/about).
   UPRNs are unique identifers for all unique properties across Great
   Britain. The dataset was the latest available at the time of access
@@ -125,3 +125,16 @@ be aggregated to administrative zones to match them to information about
 the demographic and socioeconomic characteristics of communities to
 profile who is at risk (e.g., are UPRNs in more deprived areas more at
 risk of flooding than those in less deprived areas).
+
+## Visualisations
+
+The following are some example visualisations of the indicator.
+
+##### Surface flood risk
+
+![Surface flood risk](images/UPRN_1_1_flood_risk_surface_flood_risk.png)
+
+##### Rivers & Sea flood risk ‘Medium’
+
+![Rivers & Sea flood risk
+‘Medium’](images/UPRN_1_1_flood_risk_rivers_sea_flood_risk_medium.png)
