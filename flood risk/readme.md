@@ -24,9 +24,9 @@ these methods:
   directory](https://geoportal.statistics.gov.uk/datasets/acd0dbf73c2849f2a45e15c4aa248805/about).
   UPRNs are unique identifers for all unique properties across Great
   Britain. The dataset was the latest available at the time of access
-  and refers to all UPRNs as at April 2024 (Epoch 109). The resource is
-  based of Ordnance Survey’s ‘AddressBase’ data product and incldues a
-  list of all UPRNs and their geographical location (Geographic
+  and refers to all UPRNs as of April 2024 (Epoch 109). The resource is
+  based on the Ordnance Survey’s ‘AddressBase’ data product and includes
+  a list of all UPRNs and their geographical location (Geographic
   Reference System: OSGB 1936, 27700). We further use an [ONS lookup
   table](https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about)
   linked to each UPRN to subset only UPRNs that fall within the Local
