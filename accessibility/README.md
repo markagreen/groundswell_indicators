@@ -127,7 +127,7 @@ Each file does roughly the following:
 4. A routing object is instantiated with the processed nodes, edges, greenspace areas (as inputs), and postcodes (as outputs). The routing object is configured with parameters such as weights (time estimates) and buffer distances. The fit method of the routing object calculates distances between nodes in the graph based on the given weights and buffers.
 5. The computed distances are joined with the origin data to associate each distance with a specific origin (e.g., TOID). The resulting DataFrame, containing origins and nearest distance to a destination, is saved to a CSV file.
 
-Once the file has been processed, please then run the file `ukroutes/check_outputs.R` which will match the TOID values back to UPRNs and perform some brief quality assurance checks on the dataset (e.g., check for missing data, map the estimates for a user to assess if they look correct). 
+Once the file has been processed, please then run the file `ukroutes/process_output_toids.R` which will match the TOID values back to UPRNs. 
 
 #### 2c. Tips and advice on running scripts
 
