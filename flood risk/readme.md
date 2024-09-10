@@ -1,5 +1,5 @@
 # Flood risk indicator at UPRN level
-Mark Green
+Mark Green (methodology) & Roberto Villegas-Diaz (visualisations)
 
 <!-- This report was rendered using Quarto, to make changes, please edit the .qmd file and NOT the .md -->
 <!-- # Methodology for creating a Unique Property Reference Number (UPRN) flood risk indicator -->
@@ -19,15 +19,15 @@ Macdonald who are experts in these processes.
 The following open data sources were used as inputs in the creation of
 these methods:
 
-- Unique Property Reference Numbers (UPRN) were accessed using [Office
-  for National Statistic’s open UPRN
-  directory](https://geoportal.statistics.gov.uk/datasets/acd0dbf73c2849f2a45e15c4aa248805/about).
-  UPRNs are unique identifers for all unique properties across Great
+- Unique Property Reference Numbers (UPRN) were accessed using the
+  [Ordnance Survey Open UPRN
+  product](https://www.ordnancesurvey.co.uk/products/os-open-uprn).
+  <!-- [Office for National Statistic’s open UPRN directory](https://geoportal.statistics.gov.uk/datasets/acd0dbf73c2849f2a45e15c4aa248805/about).  -->
+  UPRNs are unique identifiers for all unique properties across Great
   Britain. The dataset was the latest available at the time of access
-  and refers to all UPRNs as of April 2024 (Epoch 109). The resource is
-  based on the Ordnance Survey’s ‘AddressBase’ data product and includes
-  a list of all UPRNs and their geographical location (Geographic
-  Reference System: OSGB 1936, 27700). We further use an [ONS lookup
+  and refers to all UPRNs as of April 2024.
+  <!-- The resource is based on the Ordnance Survey’s ‘AddressBase’ data product and includes a list of all UPRNs and their geographical location (Geographic Reference System: OSGB 1936, 27700).  -->
+  We further use a [Office for National Statistic’s lookup
   table](https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about)
   linked to each UPRN to subset only UPRNs that fall within the Local
   Authorities of Cheshire and Merseyside. These data were downloaded on
@@ -47,9 +47,9 @@ these methods:
   resource](https://environment.data.gov.uk/dataset/8d57464f-d465-11e4-8790-f0def148f590).
   The resource is the main national level (England only) resource for
   flood risk mapping. It is a 50x50m gridded cell definition of flooding
-  risk from rivers and seas, defining cells on a scale from very low to
-  high based on the number and quality of flood defences in each cell.
-  More information about the methodology can be viewed
+  risk from rivers and seas, defining cells on a scale from *very low*
+  to *high* based on the number and quality of flood defences in each
+  cell. More information about the methodology can be viewed
   [here](https://environment.data.gov.uk/api/file/download?fileDataSetId=d1651d70-29a8-406a-8e66-cdf15a11ef23&fileName=RoFRS_Product_Description_v2_3.pdf).
   Data were downloaded on 10th June 2024. The resource asks one to
   download data by defining a bounding box and therefore multiple manual
@@ -86,8 +86,8 @@ an UPRN (including its unique identifier number) and a series of binary
 columns representing if the UPRN is located within a flood risk area for
 that specific measure. The file has the following columns:
 
-- `UPRN` - Unique Property Reference Number as per the Office for
-  National Statistics UPRN Directory (ONSUD) v2024.04 (Epoch 109).
+- `UPRN` - Unique Property Reference Number as per the Ordnance Survey
+  Open UPRN product v2024.04.
 - `surface_flood_risk` - is the UPRN located in an area at risk of
   surface flooding as defined by the Environment Agency’s blue map
   resource (0 = no, 1 = yes).
