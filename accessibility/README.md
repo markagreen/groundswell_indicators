@@ -31,7 +31,7 @@ The [Ordnance Survey Open
 Roads](https://www.ordnancesurvey.co.uk/products/os-open-roads) resource
 was used to act as the network to estimate the accessibility between
 origins and destinations (data downloaded on 4th June 2024). The
-resource is vector file containing the entire road network for Great
+resource is a vector file containing the entire road network for Great
 Britain, including information about the nature of a road (e.g., speed
 limit, type of road). The resource is set up to represent lines and
 nodes (connections between different lines, such as junctions). While we
@@ -64,7 +64,7 @@ linked to each UPRN was used to subset only UPRNs that fall within the
 Local Authorities of Cheshire and Merseyside (Chester and Cheshire East,
 Cheshire West, Halton, Knowsley, Liverpool, Sefton, St. Helens,
 Warrington and Wirral). If you wanted to recreate our indicators for a
-different region, one would have change this step in the code.
+different region, one would have to change this step in the code.
 
 ![NHS Cheshire and Merseyside ICB
 region](images/access_indicators_nhs_cm_icb-1.png)
@@ -76,7 +76,7 @@ compute the metrics for [Topographic
 Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid)
 (TOIDs) rather than UPRNs. UPRNs are nested within TOIDs, since UPRNs
 will give each unique property and TOIDs give the unique building. For
-example, a tower block or student halls accomodation will have many
+example, a tower block or student halls accommodation will have many
 UPRNs for the same TOID/building (e.g., Crown Place student halls at the
 University of Liverpool (UK) has ~1200 UPRNs for a single TOID). Through
 using TOIDs, we reduce the number of computations on the assumption that
@@ -262,14 +262,34 @@ report](https://designatedsites.naturalengland.org.uk/GreenInfrastructure/downlo
     1 km, maximum journey time 15 minutes (walk).
 4.  **Wider green space** - minimum size 20 ha, maximum distance 2 km,
     maximum journey time 35 minutes (walk).
-5.  **District ogreen space** - minimum size 100 ha, maximum distance 5
+5.  **District green space** - minimum size 100 ha, maximum distance 5
     km, maximum journey time 15-20 minutes (cycle).
 6.  **Sub-regional green space** - minimum size 500 ha, maximum distance
     10 km, maximum journey time 30-40 minutes (cycle).
-7.  **All green space** - consider all green space of any size
+7.  **All green space** - considers all green spaces of any size
 
 The processed green space indicators for each of these definitions are
 stored in `data/processed/osgsl`.
+
+<div>
+
+> **Note**
+>
+> The outputs include values for which the distance/journey time was
+> above the threshold established by Natural England (e.g., 300m for
+> *local greenspaces*). Therefore, users of the metric who would like to
+> *enforce* the full definition will have to add an additional filter to
+> make sure the values for each metric are within the limits set above.
+>
+> ``` r
+> local_greenspace_distances_tbl <-
+>   "path/to/UPRN_2_1_greenspace_distances_with_coords.csv" |>
+>   readr::read_csv() |>
+>   # ensure that distance to a 'local' green space is 300m or less
+>   dplyr::filter(distance_local_greenspace <= 300)
+> ```
+
+</div>
 
 ### 2. Estimate routing
 
@@ -472,8 +492,8 @@ greenspace](images/UPRN_2_1_greenspace_distances_any_greenspace.png)
 
 ##### Distance to doorstep greenspace
 
-> minimum size 0.5 ha, maximum distance 200 m, maximum journey time 5
-> minutes (walk).
+> minimum size 0.5 ha, ~~maximum distance 200 m, maximum journey time 5
+> minutes (walk)~~.
 
 ![Distance to doorstep
 greenspace](images/UPRN_2_1_greenspace_distances_doorstop_greenspace.png)

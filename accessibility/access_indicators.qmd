@@ -35,7 +35,7 @@ There are three key sources of information required:
 
 ### 1. Road network
 
-The [Ordnance Survey Open Roads](https://www.ordnancesurvey.co.uk/products/os-open-roads) resource was used to act as the network to estimate the accessibility between origins and destinations (data downloaded on 4th June 2024). The resource is vector file containing the entire road network for Great Britain, including information about the nature of a road (e.g., speed limit, type of road). The resource is set up to represent lines and nodes (connections between different lines, such as junctions). While we could have used Open Street Map data here, we have found that this resource has more accurate road speed networks.
+The [Ordnance Survey Open Roads](https://www.ordnancesurvey.co.uk/products/os-open-roads) resource was used to act as the network to estimate the accessibility between origins and destinations (data downloaded on 4th June 2024). The resource is a vector file containing the entire road network for Great Britain, including information about the nature of a road (e.g., speed limit, type of road). The resource is set up to represent lines and nodes (connections between different lines, such as junctions). While we could have used Open Street Map data here, we have found that this resource has more accurate road speed networks.
 
 The resource does not include routes available via ferries which can be an important transport network when living on a remote island (especially for Scotland, although less relevant for Cheshire and Merseyside here). Ferry routes were accessed from [Open Street Map](http://overpass-turbo.eu/?q=LyoKVGhpcyBoYcSGYmVlbiBnxI1lcmF0ZWQgYnkgdGhlIG92xJJwxIlzLXR1cmJvIHdpemFyZC7EgsSdxJ9yaWdpbmFsIHNlxLBjaMSsxIk6CsOiwoDCnHJvdcSVPWbEknJ5xYjCnQoqLwpbxYx0Ompzb25dW3RpbWXFmzoyNV07Ci8vxI_ElMSdciByZXN1bHRzCigKICDFryBxdcSSxJrEo3J0IGZvcjogxYjFisWbZcWPxZHFk8KAxZXGgG5vZGVbIsWLxY1lIj0ixZByxZIiXSh7e2LEqnh9fSnFrcaAd2F5xp_GocSVxqTGpsaWxqrGrMauxrDGssa0xb_FtWVsxJRpxaDGusaTxr3Gp8apxqvGrcavb8axxrPFrceFxoJwxLduxorFtsW4xbrFvMWbxJjGnHnFrT7Frcejc2vHiMaDdDs&c=BH1aTWQmgG).
 
@@ -46,7 +46,7 @@ The road network files are stored in `data/raw/oproad`.
 The origin locations are our inputs for which we want to estimate the nearest distance/time to an object of interest. In our code here, the interest is on households which we define using the Unique Property Reference Number (UPRN). UPRNs are unique identifiers for all unique properties across Great Britain. Data were downloaded on 4th June 2024 using the [Ordnance Survey Open UPRN product](https://www.ordnancesurvey.co.uk/products/os-open-uprn).
 <!-- [Office for National Statistic’s open UPRN directory](https://geoportal.statistics.gov.uk/datasets/acd0dbf73c2849f2a45e15c4aa248805/about). The resource is based on Ordnance Survey’s ‘AddressBase’ data product and includes a list of all UPRNs and their geographical location (Geographic Reference System: OSGB 1936, 27700). -->
 
-The population of interest for our metric is Cheshire and Merseyside. An additional [ONS lookup table](https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about) linked to each UPRN was used to subset only UPRNs that fall within the Local Authorities of Cheshire and Merseyside (Chester and Cheshire East, Cheshire West, Halton, Knowsley, Liverpool, Sefton, St. Helens, Warrington and Wirral). If you wanted to recreate our indicators for a different region, one would have change this step in the code.
+The population of interest for our metric is Cheshire and Merseyside. An additional [ONS lookup table](https://geoportal.statistics.gov.uk/datasets/02d709e510804d67b16068b037cd72e6/about) linked to each UPRN was used to subset only UPRNs that fall within the Local Authorities of Cheshire and Merseyside (Chester and Cheshire East, Cheshire West, Halton, Knowsley, Liverpool, Sefton, St. Helens, Warrington and Wirral). If you wanted to recreate our indicators for a different region, one would have to change this step in the code.
 
 ```{r nhs_cm_icb}
 #| echo: false
@@ -71,7 +71,7 @@ uk_counties |>
 ```
 
 
-The methods described below are computationally intensive and the density of UPRNs bring their own challenges (especially compared to postcodes). To improve the time spent processing UPRNs, we initially compute the metrics for [Topographic Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid) (TOIDs) rather than UPRNs. UPRNs are nested within TOIDs, since UPRNs will give each unique property and TOIDs give the unique building. For example, a tower block or student halls accomodation will have many UPRNs for the same TOID/building (e.g., Crown Place student halls at the University of Liverpool (UK) has ~1200 UPRNs for a single TOID). Through using TOIDs, we reduce the number of computations on the assumption that they will be similar for all UPRNs (note: there will be some small differences where TOIDs have multiple entrances, but the differences should be negligible here). The result is that using TOIDs gives us a dataset which is 23% smaller than if we use UPRNs only. In the workflow described below, we first estimate each indicator for TOIDs within Cheshire and Merseyside (using the datasets described above), then link the TOID values back to UPRNs using an [Ordnance Survey lookup table](https://www.ordnancesurvey.co.uk/products/os-open-linked-identifiers). If you are using the code for smaller regions of UPRNS, then you may not need to do this.
+The methods described below are computationally intensive and the density of UPRNs bring their own challenges (especially compared to postcodes). To improve the time spent processing UPRNs, we initially compute the metrics for [Topographic Identifiers](https://www.ordnancesurvey.co.uk/products/os-open-toid) (TOIDs) rather than UPRNs. UPRNs are nested within TOIDs, since UPRNs will give each unique property and TOIDs give the unique building. For example, a tower block or student halls accommodation will have many UPRNs for the same TOID/building (e.g., Crown Place student halls at the University of Liverpool (UK) has ~1200 UPRNs for a single TOID). Through using TOIDs, we reduce the number of computations on the assumption that they will be similar for all UPRNs (note: there will be some small differences where TOIDs have multiple entrances, but the differences should be negligible here). The result is that using TOIDs gives us a dataset which is 23% smaller than if we use UPRNs only. In the workflow described below, we first estimate each indicator for TOIDs within Cheshire and Merseyside (using the datasets described above), then link the TOID values back to UPRNs using an [Ordnance Survey lookup table](https://www.ordnancesurvey.co.uk/products/os-open-linked-identifiers). If you are using the code for smaller regions of UPRNS, then you may not need to do this.
 
 Files are stored in the folder `data/raw/onspd`.
 
@@ -133,11 +133,25 @@ The file recreates the following indicators based on Natural England's 2023 Gree
 2. **Local green space** - minimum size 2 ha, maximum distance 300 m, maximum journey time 5 minutes (walk).
 3. **Neighbourhood green space** - minimum size 10 ha, maximum distance 1 km, maximum journey time 15 minutes (walk).
 4. **Wider green space** - minimum size 20 ha, maximum distance 2 km, maximum journey time 35 minutes (walk).
-5. **District ogreen space** - minimum size 100 ha, maximum distance 5 km, maximum journey time 15-20 minutes (cycle).
+5. **District green space** - minimum size 100 ha, maximum distance 5 km, maximum journey time 15-20 minutes (cycle).
 6. **Sub-regional green space** - minimum size 500 ha, maximum distance 10 km, maximum journey time 30-40 minutes (cycle).
-7. **All green space** - consider all green space of any size
+7. **All green space** - considers all green spaces of any size
 
 The processed green space indicators for each of these definitions are stored in `data/processed/osgsl`.
+
+::: {.callout-note}
+The outputs include values for which the distance/journey time was above the threshold established by Natural England (e.g., 300m for *local greenspaces*). Therefore, users of the metric who would like to *enforce* the full definition will have to add an additional filter to make sure the values for each metric are within the limits set above.
+
+```{r}
+#| eval: false
+local_greenspace_distances_tbl <-
+  "path/to/UPRN_2_1_greenspace_distances_with_coords.csv" |>
+  readr::read_csv() |>
+  # ensure that distance to a 'local' green space is 300m or less
+  dplyr::filter(distance_local_greenspace <= 300)
+```
+
+:::
 
 ### 2. Estimate routing
 
@@ -252,7 +266,7 @@ The following are some example visualisations of the greenspace indicators.
 
 ##### Distance to doorstep greenspace
 
-> minimum size 0.5 ha, maximum distance 200 m, maximum journey time 5 minutes (walk).
+> minimum size 0.5 ha, ~~maximum distance 200 m, maximum journey time 5 minutes (walk)~~.
 
 ![Distance to doorstep greenspace](images/UPRN_2_1_greenspace_distances_doorstop_greenspace.png)
 
