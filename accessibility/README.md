@@ -122,7 +122,7 @@ While the Ordnance Survey includes access points for each green space
 vector, they can be of mixed quality (e.g., missing access points or
 lack of informal routes that people may also use). To counter this, we
 follow the methodology outlined in Geary et al. (2023). Here we process
-the access points in `ukroutes/process_input_files.R` to select the
+the access points in `ukroutes/process_input_greensp.R` to select the
 north, south, east and west extents of the spatial boundaries of each
 green space. These are then added to the Ordnance Survey’s access points
 to supplement them.
@@ -139,6 +139,48 @@ estimate the north, south, east and west points to mimic this (using the
 same approach as described above).
 
 Files are stored in the folder `data/raw/osgsl`.
+
+#### 3b. Blue space
+
+There was no single source capturing all types of blue spaces available,
+so we combined several sources together. [Ordnance Survey’s Open
+Rivers](https://www.ordnancesurvey.co.uk/products/os-open-rivers)
+resource was used to capture key waterways including rivers (both inland
+and tidal), streams and canals across Great Britain. The resource also
+contains some lakes but they are few in total. To address this, we
+supplemented the dataset with the UK Centre for Ecology and Hydrology’s
+[UK Lakes
+Portal](https://www.data.gov.uk/dataset/899e3816-b760-4eb4-a1f1-34fc7858f705/spatial-inventory-of-uk-waterbodies)
+dataset which contains an open spatial inventory of UK waterbodies
+(lakes, reservoirs, public ponds). The resource was originally created
+from Ordnance Survey data. Finally to capture the coastline and sea, we
+used the Great Britain coastlines as defined by [Ordnance Survey’s open
+boundaries
+resource](https://www.ordnancesurvey.co.uk/products/boundary-line). We
+use the coastline since it captures the sea and those related
+infrastructure or physical features found at the coast - piers, cliffs,
+beaches, harbours, marinas, docks, promenades. The coastline was defined
+as the high water extent.
+
+In contrast to the green space measures, we only have the exact spatial
+extents of each blue space feature (i.e., lines and polygons). There was
+no definition of access points to these features which would make data
+processing difficult. Attempting to find intersection points alongside
+paths was not possible, as there is no open paths dataset outside of
+OpenStreetMap (which may not contain all paths). Similarly, intersecting
+the road network would give erroneous results where blue spaces were
+located inside large parks (i.e., they would not intersect).
+
+Our approach was therefore to estimate access points by sampling points
+every 100 meters along each line or polygon. While this likely
+overestimates the number of access points, since the algorithm works by
+matching each point to its nearest road point this will be rectified
+later as points would likely match to the same road. Preliminary checks
+seemed to suggest that this was a reasonable assumption to have.
+Processing of the files can be found in
+`ukroutes/process_input_bluesp.R`.
+
+Files are stored in the folder `data/raw/blue_space`.
 
 ## Methods
 
@@ -230,6 +272,8 @@ files are stored in the folder `data/processed`.
 
 #### 1c. Destinations
 
+##### Green space indicators
+
 The file `ukroutes/process_input_greensp.R` processes all the green
 space datasets and combines them into a single file. It loads in the
 Ordnance Survey’s open green space layer (both access points and their
@@ -290,6 +334,18 @@ stored in `data/processed/osgsl`.
 > ```
 
 </div>
+
+##### Blue space indicators
+
+The file `ukroutes/process_input_bluesp.R` processes all of the blue
+space datasets into a single file that gives all estimated blue space
+access points for Cheshire and Merseyside. It achieves this by loading
+in all blue space datasets, subsetting them for Cheshire and Merseyside,
+converting their spatial extents (lines or polygons) into spatial points
+(by sampling every 100ms along them), and then combining into a single
+file. The end goal will be a single indicator - distance to nearest blue
+space (any type). The processed blue space data are stored in
+`data/processed/bluespace`.
 
 ### 2. Estimate routing
 
