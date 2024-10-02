@@ -54,7 +54,7 @@ Our approach was therefore to estimate access points by sampling points every 10
 
 Files are stored in the folder `data/raw/blue_space`.
 
-## Methods
+## 4. Methods
 
 The core methodology involves estimating the single source shortest path algorithm for every TOID. We have found since developing the Access to Healthy Assets and Hazards resource that computing road network accessibility measures is cimputationally intensive. We have improved this methodology through using the GPU accelerated Python library `cugraph`, part of the [NVIDIA RAPIDS ecosystem](https://rapids.ai/). `cugraph` allows for the highly parrallised processing of graph networks. This has significantly reduced the computational time from days to hours or minutes (depending on the size of the dataset). Cillian Berragan has written a brief [methodology description here](https://github.com/cjber/ukroutes?tab=readme-ov-file#routing-methodology( on their UK routes tool which supplements the text below. 
 
@@ -62,11 +62,11 @@ To run the code, you will need access to GPU support (the larger, the better). I
 
 I have divided the specific details of how the methods work into two stages below.
 
-### 1. Preprocessing
+### 4a. Preprocessing
 
 The first step is to wrangle the raw input data into the neccessary formats for estimating the routing paths. There are two key files that you will need to run seperately:
 
-#### 1a. Road network
+#### 4a-i. Road network
 
 The file `ukroutes/preprocessing.py` processes the road network into a graph network and estimates the time taken inbetween the segments of the road network (edges). 
 
@@ -79,11 +79,11 @@ The code will process the entire road network for Great Britain. While we could 
 
 The file only needs processing once and it can then be used for any additional indicator generation
 
-#### 1b. Origins
+#### 4a-ii. Origins
 
 The file `ukroutes/process_input_toids.R` processes all origin datasets into the format that they are required for being used in the routing calculations. It loads in all TOIDs for Great Britain and subsets only those located in Cheshire and Merseyside. The resulting processed TOID files are stored in the folder `data/processed`.
 
-#### 1c. Destinations
+#### 4a-iii. Destinations
 
 ** Green space indicators **
 
@@ -104,11 +104,11 @@ The processed green space indicators for each of these definitions are stored in
 
 The file `ukroutes/process_input_bluesp.R` processes all of the blue space datasets into a single file that gives all estimated blue space access points for Cheshire and Merseyside. It achieves this by loading in all blue space datasets, subsetting them for Cheshire and Merseyside, converting their spatial extents (lines or polygons) into spatial points (by sampling every 100ms along them), and then combining into a single file. The end goal will be a single indicator - distance to nearest blue space (any type). The processed blue space data are stored in `data/processed/bluespace`.
 
-### 2. Estimate routing
+### 4b. Estimate routing
 
 The next set of files estimate the accessibility indicators.
 
-#### 2a. Key files doing the processing 'under the hood'
+#### 4bi. Key files doing the processing 'under the hood'
 
 The files described below are the key files which calculate the access between origin and destination datasets. One does not need to run these files, since they are mostly called or incoporated into the scripts for generated each indicator. A description of each file is provided below to help explain what they do.
 
@@ -127,7 +127,7 @@ The file `ukroutes/process_routing.py` does the following:
 
 These files are instrumental in part 2b. 
 
-#### 2b. Files that you need to run
+#### 4b-ii. Files that you need to run
 
 The files located in the folder `scripts` contain each self-contained scripts for creating each individual indicator. Once you have processed all of the input files, you just need to run each script file individually to create your own set of estimates for TOIDs for that particular indicator. Within the folder, there lies the following files:
 
@@ -145,7 +145,7 @@ Each file does roughly the following:
 
 Once the file has been processed, please then run the file `ukroutes/process_output_toids.R` which will match the TOID values back to UPRNs. 
 
-#### 2c. Tips and advice on running scripts
+#### 4b-iii. Tips and advice on running scripts
 
 Each individual script can be modified to alter the performance of the code. The following metrics can be changed:
 
@@ -167,10 +167,10 @@ We tested changes in `add_topk` using 100 TOIDs and all green spaces (undertaken
 | 5  | 0.993  | 129  |
 | 10  | 1.000  | 256  |
 
-#### 2d. Time or distance indicators
+#### 4b-iv. Time or distance indicators
 
 One can measure either the shortest distance (meters) or time (minutes) from a household to any indicator of interest (e.g., nearest green space). Both time and distance are highly correlated together (r = 0.95 in a sample of 100 TOIDs), as they are the essentially the same thing (i.e., the further something is located away from you, the longer it will take to get there - although I note that travelling at the speed limit for 1 minute on a 70mph motorway versus a 20mph road will give different distances, demonstrating how the road network shapes access). If you want to change the output to record time or distance, please change the weight in the Routing() function to either "time_weighted" for time or "length" for distance (see the files within part 2b). 
 
-## Examples of usage
+## 5. Examples of usage
 
 Through estimating the accesibility of each household to their nearest green space, one can investigate how the living closer or far from these spaces influences human activity (e.g., physical activity), health and wellbeing outcomes. This can help us to generate evidence on the importance of building or maintaining natural environments. 
