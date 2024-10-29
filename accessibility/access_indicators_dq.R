@@ -7,7 +7,7 @@ data_dir <- Sys.getenv("GW_RDD") |>
 # create temporary file
 tmp_file <- tempfile(fileext = ".zip")
 # download latest OS Open UPRN dataset
-oopt <- options(timeout = 240)
+oopt <- options(timeout = 500)
 download.file(
   url = "https://api.os.uk/downloads/v1/products/OpenUPRN/downloads?area=GB&format=CSV&redirect",
   destfile = tmp_file
@@ -415,14 +415,19 @@ bluespace_distances_v3_sf |>
   ) +
   ggplot2::theme_bw() +
   ggplot2::guides(
-    fill = ggplot2::guide_legend(override.aes = list(size = 3, stroke = .5))
+    fill = ggplot2::guide_colourbar(
+      position = "bottom",
+      theme = ggplot2::theme(
+        legend.key.width  = ggplot2::unit(30, "lines"),
+        legend.key.height = ggplot2::unit(2, "lines")
+      )
+      # ggplot2::guide_legend(override.aes = list(size = 3, stroke = .5))
+    )
   )
 
 ggplot2::ggsave(
   filename = file.path(data_dir, "Blue space indicators/UPRN_4_1_bluespace_distances_any_bluespace.png"),
-  width = 12,
-  height = 11,
+  width = 11,
+  height = 12,
   dpi = 300
 )
-
-
