@@ -27,12 +27,13 @@ get_os_open_toids <- function(area, timeout = 500) {
       url = paste0(base_url, "?area=", area, "&format=CSV&redirect"),
       destfile = tmp_file
     )
-    # reverse change in timeout
-    options(oopt)
     # extract data
     unzip(tmp_file, exdir = dirname(tmp_file))
-    files <-
-      list.files(dirname(tmp_file), pattern = "osopentoid", full.names = TRUE)
+    files <- list.files(
+      path = dirname(tmp_file),
+      pattern = "osopentoid*.*csv$",
+      full.names = TRUE
+    )
 
     # load the OS Open TOID dataset
     aux <- files[1] |> # read the latest version
@@ -40,12 +41,13 @@ get_os_open_toids <- function(area, timeout = 500) {
 
     # remove temporary files
     unlink(tmp_file, recursive = TRUE, force = TRUE)
-    unlink(files, recursive = TRUE, force = TRUE)
+    unlink(dirname(tmp_file), recursive = TRUE, force = TRUE)
 
     return(aux)
   }, error = function(e) {
     return(NULL)
   })
+  # reverse change in timeout
   options(oopt)
   return(os_open_toid)
 }
@@ -91,9 +93,11 @@ get_os_open_identifiers <- function(ref, timeout = 500) {
   } else if (ref == "RoadLink-TOID-TopographicArea-TOID") {
     url <- paste0(url, "lids-2024-09_csv_RoadLink-TOID-TopographicArea-TOID-2.zip&redirect")
   } else if (ref == "Street-USRN-TopographicArea-TOID") {
-      url <- paste0(url, "lids-2024-09_csv_Street-USRN-TopographicArea-TOID-4.zip&redirect")
+    url <- paste0(url, "lids-2024-09_csv_Street-USRN-TopographicArea-TOID-4.zip&redirect")
   }
 
+  # create temporary file
+  tmp_file <- tempfile(fileext = ".zip")
   # change timeout (slow downloads)
   oopt <- options(timeout = timeout)
   # download latest OS Open Linked Identifiers dataset
@@ -102,12 +106,16 @@ get_os_open_identifiers <- function(ref, timeout = 500) {
       url = url,
       destfile = tmp_file
     )
-    # reverse change in timeout
-    options(oopt)
+
     # extract data
     unzip(tmp_file, exdir = dirname(tmp_file))
-    files <-
-      list.files(dirname(tmp_file), pattern = ref, full.names = TRUE)
+    files <- list.files(
+      path = dirname(tmp_file),
+      pattern = ref |>
+        stringr::str_replace_all(pattern = "-", replacement = "_") |>
+        stringr::str_c("*.*csv$"),
+      full.names = TRUE
+    )
 
     # load the OS Open TOID dataset
     aux <- files[1] |> # read the latest version
@@ -115,12 +123,14 @@ get_os_open_identifiers <- function(ref, timeout = 500) {
 
     # remove temporary files
     unlink(tmp_file, recursive = TRUE, force = TRUE)
-    unlink(files, recursive = TRUE, force = TRUE)
+    unlink(dirname(tmp_file), recursive = TRUE, force = TRUE)
 
     return(aux)
   }, error = function(e) {
+    print(e)
     return(NULL)
   })
+  # reverse change in timeout
   options(oopt)
   return(os_open_ids)
 }
