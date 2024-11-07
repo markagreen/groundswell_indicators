@@ -62,6 +62,10 @@ get_os_open_toids <- function(area, timeout = 500) {
 #'     "RoadLink-TOID-Street-USRN", "RoadLink-TOID-TopographicArea-TOID",
 #'     "Street-USRN-TopographicArea-TOID"
 #' @param timeout Integer with maximum timeout to download data.
+#' @param filter_1 Vector with IDs to filter the raw data. Use the
+#'     `IDENTIFIER_1` column (e.g., UPRNs).
+#' @param filter_2 Vector with IDs to filter the raw data. Use the
+#'     `IDENTIFIER_2` column (e.g., TOIDs).
 #'
 #' @return Data frame with latest OS Open Linked Identifiers for `ref`.
 #' @export
@@ -70,7 +74,7 @@ get_os_open_toids <- function(area, timeout = 500) {
 #'
 #' @examples
 #' get_os_open_identifiers("BLPU-UPRN-TopographicArea")
-get_os_open_identifiers <- function(ref, timeout = 500) {
+get_os_open_identifiers <- function(ref, timeout = 500, filter_1 = NULL, filter_2 = NULL) {
   url <- "https://api.os.uk/downloads/v1/products/LIDS/downloads?area=GB&format=CSV&fileName="
   if (ref == "BLPU-UPRN-RoadLink") {
     url <- paste0(url, "lids-2024-09_csv_BLPU-UPRN-RoadLink-TOID-9.zip&redirect")
@@ -118,8 +122,13 @@ get_os_open_identifiers <- function(ref, timeout = 500) {
     )
 
     # load the OS Open TOID dataset
-    aux <- files[1] |> # read the latest version
-      readr::read_csv()
+    if (!is.null(filter_1)) {
+      aux <- data.table::fread(files[1])[IDENTIFIER_1 %in% filter_1]
+    } else if(!is.null(filter_2)) {
+      aux <- data.table::fread(files[1])[IDENTIFIER_2 %in% filter_2]
+    } else {
+      aux <- data.table::fread(files[1])
+    }
 
     # remove temporary files
     unlink(tmp_file, recursive = TRUE, force = TRUE)
